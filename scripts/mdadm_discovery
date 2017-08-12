@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+#Developed by Bruno Guilherme Souza
+#Date: 05/05/2016
+#E-mail: bruno.gui@gmail.com
+#Code adapted from Zabbix discovery rules examples: https://www.zabbix.com/documentation/3.0/manual/discovery/low_level_discovery
+
+$first = 1;
+
+print "{\n";
+print "\t\"data\":[\n\n";
+
+for (`mdadm --detail --scan`)
+{
+    ($mddevice) = m/\S+ (\S+)/;
+    $mddevice =~ s!/!\\/!g;
+
+    print "\t,\n" if not $first;
+    $first = 0;
+
+    print "\t{\n";
+    print "\t\t\"{#MDDEVICE}\":\"$mddevice\"\n";
+    print "\t}\n";
+}
+
+print "\t]\n";
+print "}\n";

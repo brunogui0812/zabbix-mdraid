@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+#Developed by Bruno Guilherme Souza
+#Date: 05/05/2016
+#E-mail: bruno.gui@gmail.com
+
+$mddevice=$ARGV[0];
+if (scalar((split "/", $mddevice)) == 3){
+    $mddigest = (split "/", $mddevice)[-1];
+} else {
+    $mddigest = (split "/", $mddevice)[-2].(split "/", $mddevice)[-1];
+}
+
+$sync_action = `cat /sys/class/block/$mddigest/md/sync_action` ;
+$sync_action =~ s/^\s+|\s+$//g;
+$_=`mdadm --detail $mddevice |grep "State :" | cut -d":" -f2 `;
+
+if ((/recovering/ || /resyncing/ || /rebuilding/) && ($sync_action ne 'check')){
+    print "Recovering\n";
+    exit 1;
+}
+elsif ((/degraded/) && ($sync_action ne 'check')){
+    print "Degraded\n";
+    exit 2;
+}
+elsif (/clean/ || /active/ || $sync_action eq 'check'){
+    print "OK\n";
+    exit 0;
+}
+else{
+    print "Unknown error\n";
+    exit 255;
+}
